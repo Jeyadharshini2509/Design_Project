@@ -1,5 +1,5 @@
 import React from 'react';
-import '../Styles/Dashboard.css';
+import '../Styles/ParentDashboard.css';
 
 const ParentDashboard = () => {
   return (

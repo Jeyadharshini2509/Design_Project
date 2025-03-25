@@ -1,5 +1,5 @@
 import React from 'react';
-import '../Styles/Dashboard.css';
+import '../Styles/HeadmasterDashboard.css';
 
 const HeadmasterDashboard = () => {
   return (
