@@ -51,7 +51,7 @@ function App() {
             isAuthenticated ? <Navigate to="/dashboard" /> : <Login handleLogin={handleLogin} />
           }
         />
-
+        
         {/* Protected route for dashboard */}
         <Route
           path="/dashboard"

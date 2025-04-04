@@ -1,27 +1,58 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); // Import Mongoose User model
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const User = require('../models/User'); // Assuming you have a User model
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
+// User Registration (No bcrypt)
+router.post('/register', async (req, res) => {
   try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'User not found' });
+    const { name, email, password, role } = req.body;
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+    // Convert email to lowercase before saving (to avoid duplicates)
+    const lowerCaseEmail = email.toLowerCase();
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+    let user = await User.findOne({ email: lowerCaseEmail });
+    if (user) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // Save the user with the original password (case-sensitive)
+    user = new User({
+      name,
+      email: lowerCaseEmail, // Save email in lowercase
+      password, // Store password as it is (case-sensitive)
+      role
     });
 
-    res.status(200).json({ user, token });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    await user.save();
+    res.status(201).json({ message: "User registered successfully" });
+
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// User Login (No bcrypt, Case-Insensitive Email)
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Convert email to lowercase before checking in the database
+    const lowerCaseEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: lowerCaseEmail });
+    if (!user) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    // Compare passwords (case-sensitive)
+    if (user.password !== password) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    res.status(200).json({ message: "Login successful", user });
+
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 
